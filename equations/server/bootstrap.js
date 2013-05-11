@@ -1,41 +1,20 @@
 // if the database is empty on server start, create some sample data.
 Meteor.startup(function () {
+  
   if (Lists.find().count() === 0) {
     var data = [
       {name: "Array Principles",
        contents: [
-         ["Data on the Wire", "Simplicity", "Better UX", "Fun"],
-         ["One Language", "Simplicity", "Fun"],
-         ["Database Everywhere", "Simplicity"],
-         ["Latency Compensation", "Better UX"],
-         ["Full Stack Reactivity", "Better UX", "Fun"],
-         ["Embrace the Ecosystem", "Fun"],
-         ["Simplicity Equals Productivity", "Simplicity", "Fun"]
+         ["Double integer array", "Simplicity"],
+         ["Double integer array by closure", "Trickiness"],
        ]
       },
       {name: "Object Principles",
        contents: [
-         ["Lisp", "GC"],
-         ["C", "Linked"],
-         ["C++", "Objects", "Linked"],
-         ["Python", "GC", "Objects"],
-         ["Ruby", "GC", "Objects"],
-         ["JavaScript", "GC", "Objects"],
-         ["Scala", "GC", "Objects"],
-         ["Erlang", "GC"],
-         ["6502 Assembly", "Linked"]
+         ["Variable scope", "Objects"],
+         ["Private methods", "Objects"],
          ]
       },
-      {name: "Foo Principles",
-       contents: [
-         ["Ada Lovelace", "Computer Science"],
-         ["Grace Hopper", "Computer Science"],
-         ["Marie Curie", "Physics", "Chemistry"],
-         ["Carl Friedrich Gauss", "Math", "Physics"],
-         ["Nikola Tesla", "Physics"],
-         ["Claude Shannon", "Math", "Computer Science"]
-       ]
-      }
     ];
 
     var timestamp = (new Date()).getTime();

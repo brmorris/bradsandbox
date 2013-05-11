@@ -10,13 +10,13 @@ Session.set('list_id', null);
 // Name of currently selected tag for filtering
 Session.set('tag_filter', null);
 
-// When adding tag to a todo, ID of the todo
+// When adding tag to a equation, ID of the equation
 Session.set('editing_addtag', null);
 
 // When editing a list name, ID of the list
 Session.set('editing_listname', null);
 
-// When editing todo text, ID of the todo
+// When editing equation text, ID of the equation
 Session.set('editing_itemname', null);
 
 
@@ -136,7 +136,7 @@ Template.equations.any_list_selected = function () {
 
 Template.equations.events = {};
 
-Template.equations.events[ okcancel_events('#new-todo') ] =
+Template.equations.events[ okcancel_events('#new-equation') ] =
   make_okcancel_handler({
     ok: function (text, evt) {
       var tag = Session.get('tag_filter');
@@ -167,30 +167,30 @@ Template.equations.equations = function () {
   return Equations.find(sel, {sort: {timestamp: 1}});
 };
 
-Template.todo_item.tag_objs = function () {
-  var todo_id = this._id;
+Template.equation_item.tag_objs = function () {
+  var equation_id = this._id;
   return _.map(this.tags || [], function (tag) {
-    return {todo_id: todo_id, tag: tag};
+    return {equation_id: equation_id, tag: tag};
   });
 };
 
-Template.todo_item.done_class = function () {
+Template.equation_item.done_class = function () {
   return this.done ? 'done' : '';
 };
 
-Template.todo_item.done_checkbox = function () {
+Template.equation_item.done_checkbox = function () {
   return this.done ? 'checked="checked"' : '';
 };
 
-Template.todo_item.editing = function () {
+Template.equation_item.editing = function () {
   return Session.equals('editing_itemname', this._id);
 };
 
-Template.todo_item.adding_tag = function () {
+Template.equation_item.adding_tag = function () {
   return Session.equals('editing_addtag', this._id);
 };
 
-Template.todo_item.events = {
+Template.equation_item.events = {
   'click .check': function () {
     Equations.update(this._id, {$set: {done: !this.done}});
   },
@@ -205,15 +205,15 @@ Template.todo_item.events = {
     focus_field_by_id("edittag-input");
   },
 
-  'dblclick .display .todo-text': function (evt) {
+  'dblclick .display .equation-text': function (evt) {
     Session.set('editing_itemname', this._id);
     Meteor.flush(); // update DOM before focus
-    focus_field_by_id("todo-input");
+    focus_field_by_id("equation-input");
   },
 
   'click .remove': function (evt) {
     var tag = this.tag;
-    var id = this.todo_id;
+    var id = this.equation_id;
 
     evt.target.parentNode.style.opacity = 0;
     // wait for CSS animation to finish
@@ -224,7 +224,7 @@ Template.todo_item.events = {
 
 };
 
-Template.todo_item.events[ okcancel_events('#todo-input') ] =
+Template.equation_item.events[ okcancel_events('#equation-input') ] =
   make_okcancel_handler({
     ok: function (value) {
       Equations.update(this._id, {$set: {text: value}});
@@ -235,7 +235,7 @@ Template.todo_item.events[ okcancel_events('#todo-input') ] =
     }
   });
 
-Template.todo_item.events[ okcancel_events('#edittag-input') ] =
+Template.equation_item.events[ okcancel_events('#edittag-input') ] =
   make_okcancel_handler({
     ok: function (value) {
       Equations.update(this._id, {$addToSet: {tags: value}});
@@ -253,8 +253,8 @@ Template.tag_filter.tags = function () {
   var tag_infos = [];
   var total_count = 0;
 
-  Equations.find({list_id: Session.get('list_id')}).forEach(function (todo) {
-    _.each(todo.tags, function (tag) {
+  Equations.find({list_id: Session.get('list_id')}).forEach(function (equation) {
+    _.each(equation.tags, function (tag) {
       var tag_info = _.find(tag_infos, function (x) { return x.tag === tag; });
       if (! tag_info)
         tag_infos.push({tag: tag, count: 1});

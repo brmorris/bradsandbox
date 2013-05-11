@@ -17,7 +17,9 @@
 </body>
 
 <template name="lists">
-  <h3>Todo Lists</h3>
+  <h5>bradsandbox: Equation Lists</h5>
+  <a href="https://github.com/brmorris/bradsandbox">Github</a>
+  <hr>
   <div id="lists">
     {{#each lists}}
       <div class="list {{selected}}">
@@ -43,29 +45,30 @@
 <template name="equations">
   {{#if any_list_selected}}
   <div id="items-view">
-    <div id="new-todo-box">
-      <input type="text" id="new-todo" placeholder="New item" />
+    <div id="new-equation-box">
+      <input type="text" id="new-equation" placeholder="New item" />
     </div>
     <ul id="item-list">
       {{#each equations}}
-        {{> todo_item}}
+        {{> equation_item}}
       {{/each}}
     </ul>
   </div>
   {{/if}}
 </template>
 
-<template name="todo_item">
-  <li class="todo {{done_class}}">
+<template name="equation_item">
+  <li class="equation {{done_class}}">
     {{#if editing}}
       <div class="edit">
-        <input id="todo-input" type="text" value="{{text}}" />
+        <input id="equation-input" type="text" value="{{text}}" />
       </div>
     {{else}}
       <div class="destroy"></div>
       <div class="display">
         <input class="check" name="markdone" type="checkbox" {{{done_checkbox}}} />
-        <div class="todo-text">{{text}}</div>
+	<div class="equation-text">{{text}}</div> 
+	<div class="equation-view"><h5> equation view</h5> {{equation_view}} </div> 
       </div>
     {{/if}}
     <div class="item-tags">
