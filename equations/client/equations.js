@@ -3,13 +3,6 @@
 // Define Minimongo collections to match server/publish.js.
 // ref: https://github.com/slacy/minimongo. Abstracts server data? what about if no connection? need to understand minimongo and its relationship to meteor. 
 
-Lists = new Meteor.Collection("lists"); // lists contain one or more equations
-Equations = new Meteor.Collection("equations"); // these are (all?) equations
-var eq = new Equation();
-
-
-
-
 // Now we init session variables. this suggests this code is run onLoad?. Note that note all of these session variables are used (like editing_addtag)
 
 // ID of currently selected list
@@ -204,15 +197,6 @@ Template.equations.equations = function () {
   return Equations.find(sel, {sort: {timestamp: 1}});
 };
 
-Template.equation_item.tag_objs = function () {
-  // return all taks for the current object (wll, the on stored in _id)
-  // returns object in the form {equation_id: equation_id; tag: tag}. Note the singular tag.
-  var equation_id = this._id;
-  return _.map(this.tags || [], function (tag) {
-    return {equation_id: equation_id, tag: tag};
-  });
-};
-
 Template.equation_item.done_class = function () {
   // if the current item is done, return done as the class name, otherwise null
   return this.done ? 'done' : '';
@@ -228,10 +212,6 @@ Template.equation_item.editing = function () {
   return Session.equals('editing_itemname', this._id);
 };
 
-Template.equation_item.adding_tag = function () {
-  // return true if this id is noted in the session as being added
-  return Session.equals('editing_addtag', this._id);
-};
 
 // define mouse events on the equation_item Template
 Template.equation_item.events = {
@@ -245,12 +225,6 @@ Template.equation_item.events = {
     Equations.remove(this._id);
   },
 
-  'click .addtag': function (evt) {
-    // handle add tage. Note we set the editing_addtag context to this id (stores state)
-    Session.set('editing_addtag', this._id);
-    Meteor.flush(); // update DOM before focus
-    focus_field_by_id("edittag-input"); // update the UI to this field for quick editing
-  },
 
   'dblclick .display .equation-text': function (evt) {
     // TODO. handle editing the equation text?
@@ -259,17 +233,6 @@ Template.equation_item.events = {
     focus_field_by_id("equation-input");
   },
 
-  'click .remove': function (evt) { 
-    // handle removing a tag
-    var tag = this.tag;
-    var id = this.equation_id;
-
-    evt.target.parentNode.style.opacity = 0;
-    // wait for CSS animation to finish
-    Meteor.setTimeout(function () {
-      Equations.update({_id: id}, {$pull: {tags: tag}});
-    }, 300); // TODO understand this callback
-  }
 
 };
 
@@ -285,59 +248,6 @@ Template.equation_item.events[ okcancel_events('#equation-input') ] =
     }
   });
 
-Template.equation_item.events[ okcancel_events('#edittag-input') ] =
-  make_okcancel_handler({
-   // create ok cancel events for adding a tag. Note the addToSet (handles duplicates?)
-    ok: function (value) {
-      Equations.update(this._id, {$addToSet: {tags: value}});
-      Session.set('editing_addtag', null);
-    },
-    cancel: function () {
-      Session.set('editing_addtag', null); // TODO, clearing this session edit flag redraws the UI to show no tag edit controls?
-    }
-  });
-
-////////// Tag Filter ////////// TODO what is the tag filter?
-
-// Pick out the unique tags from all equations in current list.
-Template.tag_filter.tags = function () {
-  var tag_infos = [];
-  var total_count = 0;
-
-  Equations.find({list_id: Session.get('list_id')}).forEach(function (equation) {
-    _.each(equation.tags, function (tag) {
-      var tag_info = _.find(tag_infos, function (x) { return x.tag === tag; });
-      if (! tag_info)
-        tag_infos.push({tag: tag, count: 1});
-      else
-        tag_info.count++;
-    });
-    total_count++;
-  });
-  // TODO where does _ var come from?
-  tag_infos = _.sortBy(tag_infos, function (x) { return x.tag; });
-  // TODO why does unshift take an arg here?
-  tag_infos.unshift({tag: null, count: total_count});
-
-  return tag_infos;
-};
-
-Template.tag_filter.tag_text = function () {
-  return this.tag || "All items";
-};
-
-Template.tag_filter.selected = function () {
-  return Session.equals('tag_filter', this.tag) ? 'selected' : '';
-};
-
-Template.tag_filter.events = {
-  'mousedown .tag': function () {
-    if (Session.equals('tag_filter', this.tag))
-      Session.set('tag_filter', null); // empties if already set
-    else
-      Session.set('tag_filter', this.tag); // sets if already empty
-  }
-};
 
 ////////// Tracking selected list in URL //////////
 

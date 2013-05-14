@@ -6,8 +6,9 @@ Meteor.startup(function () {
 // Bootstrap data in the Lists collection, if the Lists collection is empty
 // //
 // //  currently: if the database is empty on server start, create some sample data.
-// //  TODO future: move to client, improve datastructure
+// 
 // //
+  return; //  TODO future: move to client, improve datastructure
 
   if (Lists.find().count() === 0) {
     var data = [
