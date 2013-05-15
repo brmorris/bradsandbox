@@ -41,18 +41,44 @@
 </template>
 
 <template name="equations">
+  <div id="equation-viewer">
+	    {{> equation_viewer}}
+  </div>
   {{#if any_list_selected}}
   <div id="items-view">
-    <div id="new-equation-box">
-      <input type="text" id="new-equation" placeholder="New item" />
-    </div>
+    
     <ul id="item-list">
       {{#each equations}}
         {{> equation_item}}
       {{/each}}
+	 <!-- ><div id="new-equation-box">
+      <input type="text" id="new-equation" placeholder="New item" />
+    </div> -->
+
     </ul>
   </div>
   {{/if}}
+</template>
+
+<template name="equation_viewer">
+
+  Inputs:
+  <div id="equation-inputs-view">
+    <ul id="equation-inputs-list">
+      {{#each inputs}}
+        <li>{{input}}><li>
+      {{/each}}
+    </ul>
+  </div>
+  Outputs:
+  <div id="equation-outputs-view">
+    <ul id="equation-outputs-list">
+      {{#each outputs}}
+        <li>{{output}}><li>
+      {{/each}}
+    </ul>
+  </div>
+
 </template>
 
 <template name="equation_item">

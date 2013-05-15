@@ -107,6 +107,55 @@ Lists = new Meteor.Collection("lists");
 Equations = new Meteor.Collection("equations");
 
 if (Meteor.isServer) { 
+	
+	Meteor.startup(function () {
+
+      /*/ empty an existing Equations.
+      var existingEquations = Equations.find().fetch();
+      for ( var i = 0; i < existingEquations; i++ ) {
+	        existingEquations[i].
+	  } */
+	 Equations.remove({});
+	 Lists.remove({});
+	 var existingEquations = Equations.find({}).fetch();
+      for ( var i = 0; i < existingEquations; i++ ) {
+	        console.log("Found " + existingEquations[i]);
+	  }
+	    var data = [
+	      {name: "Arraysdfsdfsfd Principles",
+	       contents: [
+	         ["Double integer array", "Simplicity"],
+	         ["Double integer array by closure", "Trickiness"],
+	       ]
+	      },
+	      {name: "Object Principles",
+	       contents: [
+	         ["Variable scope", "Objects"],
+	         ["Private methods", "Objects"],
+	         ]
+	      },
+	    ];
+
+	    // Now we have hardcoded some data object literals, add them to Equations collection via Equations.insert
+	    // we insert on declaration order. 
+	    // TODO: check info property contents
+	    // We insert into the Equations collection via literal object syntax, revealing the Equation document's schema.
+
+	    var timestamp = (new Date()).getTime();
+	    for (var i = 0; i < data.length; i++) {
+	      var list_id = Lists.insert({name: data[i].name});
+	      for (var j = 0; j < data[i].contents.length; j++) {
+	        var info = data[i].contents[j];
+	        Equations.insert({list_id: list_id,
+	                      text: info[0],
+	                      timestamp: timestamp,
+	                      tags: info.slice(1)});
+	                      timestamp += 1; // ensure unique timestamp.
+	      }
+	    }
+	  
+	}
+	);
       // Publish all items for requested list_id. -> returns data for all equations 'linked' via list_id to a list
       Meteor.publish('equations', function (list_id) {
               return Equations.find({list_id: list_id});
