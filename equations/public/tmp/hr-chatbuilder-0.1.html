@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+   <script src="http://chatbuilder.hackreactor.com/ChatBuilder.js"></script> 
+  </head>
+  <body>
+    <script>
+  /*
+	       *  Nice, you found the HTML source code for ChatBuilder! This document kicks everything off when you load it
+	       *  in your browser, and is a starting point for the whole app. It's pretty incomplete though--you should
+	       *  make your own version of it that works better!
+	       *
+	       *  You can't edit the code here until it's in a file on your hard drive, so copy this whole page of source
+	       *  code and paste it into a plain text editor like Sublime Text 2 (http://www.sublimetext.com/). Save it as
+	       *  a `.html` file, and open that file with Google Chrome. You can now edit it however you like, and refresh
+	       *  the page to see your modifications take effect on how the application runs.
+	       *
+	       *  Fair warning: one or more of the steps ahead could require a good amount of research to understand all
+	       *  the terms and technologies mentioned. Googling words you haven't heard before is a great idea. Just be
+	       *  careful not to spend too long in 'research mode' without making any forward progress on your real goal of
+	       *  completing the app!
+	       *
+	       *
+	       *  When you've got this code saved as a local file, uncomment the line of JavaScript code below and open
+	       *  the new file in Google Chrome. Your next instructions will be waiting for you in the JavaScript console.
+	       *  If you already know the Chrome JS development tools pretty well, feel free to skip this opening tutorial
+	       *  by calling the `.start()` function on `Chat.guide` instead of `.intro()`
+	       */
+
+	Chat.guide.start();
+
+	delete Chat.display;
+	delete Chat.fetch;
+	delete Chat.send;
+
+	// Chat helper functions /// 
+	Chat.display = function(message) {
+	    // output the passed chat data by appending an li
+	    $('.messages').append("<li> " + message + "</li>");
+	}
+
+	Chat.fetch = function(cb) {
+	    // return the fetched() chat data from the server. The passes function is called on ajax get load sucess
+	    $.ajax({
+	        url: 'https://api.parse.com/1/classes/chats',
+	        type: 'GET',
+	        dataType: 'JSON',
+	        contentType: 'application/json',
+	        error: function(data) {
+	            console.error('Failed to fetch chat messages:\n\t' + data);
+	        },
+	        success: function(data) {
+	            cb(data);
+	        }
+	    });
+	}
+
+	Chat.send = function(message) {
+	    // send the passed string message to the chat server, via ajax post
+	    $.ajax({
+	        url: 'https://api.parse.com/1/classes/chats',
+	        type: 'POST',
+	        dataType: 'JSON',
+	        contentType: 'application/json',
+	        data: JSON.stringify({
+	            text: message
+	        }),
+	        error: function(data) {
+	            console.error('Failed to send chat messages:\n\t' + data);
+	        },
+	        success: function(data) {
+	            // i guess chat clients shouldn't be proactively successful, so we just output success to the console
+	            console.log("sent data: " + message);
+	        }
+	    });
+	}
+
+	// Core helper functions //
+	
+	function getURLParameter(name) {
+	    // returned named paramater from the window's url query string, from http://stackoverflow.com/questions/1403888/get-url-parameter-with-jquery
+	    return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search) || [, null])[1]);
+	}
+
+	// Globals //
+	var username = getURLParameter("username");
+
+	// Init //
+	$(document).ready(function() {
+
+	    // init enable/disable of the chat button
+	    $('input[type="text"]').keyup(function() {
+	        if ($(this).val() != '') {
+	            $('.send').removeAttr('disabled');
+	        } else {
+	            $('.send').attr('disabled', 'disabled');
+	        }
+	    });
+
+	    // init chat message display handling. on page load: 
+	    //  - first we refresh the view 
+	    //  - and then we set a refresh rate via setInterval(), hardcoded to 3 seconds
+	    rewriteChatMessages();
+	    setInterval(rewriteChatMessages, 5000);
+
+	});
+
+	var rewriteChatMessages = function() {
+		// writes latest chat messages to the UI. Entrypoint called by a timer which does the following:
+		//   - removes existing chat messages
+		//   - fetches the latest chat messages via the server-side Chat.fetch() API call.
+		//   - latest chat messages array is sorted by creation date, 
+		//   - finally latest (sorted) chat messages array is output by index value using Chat.display() 
+	    $('.messages li').remove();
+	    Chat.fetch(function(vals) {
+	        var chat_messages = vals['results'];
+	        chat_messages.sort(function(a, b) {
+	            // sort the messages by creation date. 
+	            // sort function from http://stackoverflow.com/questions/10123953/sort-javascript-object-array-by-date
+	            a = new Date(a.createdAt);
+	            b = new Date(b.createdAt);
+	            return a > b ? -1: a < b ? 1: 0;
+	        });
+	        // just send the sorted messages to the UI via Chat.display(string)
+	        for (var i = chat_messages.length - 1; i >= 0; i--) {
+	            Chat.display(chat_messages[i]['text']);
+	        }
+	    });
+
+	};
+
+	var sendChat = function() {
+	    // click send button handler. use chat_text to send the result and empty the form's input text value
+	    Chat.send(username + ": " + $('input[id=chat_text]').val());
+	    $('input[id=chat_text]').val("");
+
+	}
+
+    </script>
+
+    <h2>Borken Chat</h2>
+
+    <ul class="messages">
+    </ul>
+  
+  <input class="draft" id="chat_text" type="text"/> <button class="send" onClick="sendChat()" disabled>send</button>
+  
+  </body>
+</html>
