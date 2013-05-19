@@ -6,28 +6,7 @@
   </head>
   <body>
     <script>
-  /*
-	       *  Nice, you found the HTML source code for ChatBuilder! This document kicks everything off when you load it
-	       *  in your browser, and is a starting point for the whole app. It's pretty incomplete though--you should
-	       *  make your own version of it that works better!
-	       *
-	       *  You can't edit the code here until it's in a file on your hard drive, so copy this whole page of source
-	       *  code and paste it into a plain text editor like Sublime Text 2 (http://www.sublimetext.com/). Save it as
-	       *  a `.html` file, and open that file with Google Chrome. You can now edit it however you like, and refresh
-	       *  the page to see your modifications take effect on how the application runs.
-	       *
-	       *  Fair warning: one or more of the steps ahead could require a good amount of research to understand all
-	       *  the terms and technologies mentioned. Googling words you haven't heard before is a great idea. Just be
-	       *  careful not to spend too long in 'research mode' without making any forward progress on your real goal of
-	       *  completing the app!
-	       *
-	       *
-	       *  When you've got this code saved as a local file, uncomment the line of JavaScript code below and open
-	       *  the new file in Google Chrome. Your next instructions will be waiting for you in the JavaScript console.
-	       *  If you already know the Chrome JS development tools pretty well, feel free to skip this opening tutorial
-	       *  by calling the `.start()` function on `Chat.guide` instead of `.intro()`
-	       */
-
+ 
 	Chat.guide.start();
 
 	delete Chat.display;
@@ -39,7 +18,30 @@
 	    // output the passed chat data by appending an li
 	    $('.messages').append("<li> " + message + "</li>");
 	}
-
+	Chat.displayCommand = function(message) {
+	    // output the passed chat data by appending an li. we dress up this command message
+	    Chat.display("<i> " + message + "</i>");
+	}
+	
+	Chat.command = function(message) {
+	    // process a command
+		var commands = message.split(" ");
+		switch (commands[0]) {
+			case 'help':
+				return Chat.displayCommand("\thelp:\n              \ 
+				                                                   \
+				      pause\t\tdisable refresh
+				      play\t\tenable refresh
+				      
+				      up/down\t\tnavigate chat history";
+			case 'pause':
+				return Chat.displayCommand("help command for " + commands[0]);
+				
+			default:
+				Chat.displayCommand("unknown command: " + commands[0]);
+		}
+	}
+	
 	Chat.fetch = function(cb) {
 	    // return the fetched() chat data from the server. The passes function is called on ajax get load sucess
 	    $.ajax({
@@ -58,21 +60,29 @@
 
 	Chat.send = function(message) {
 	    // send the passed string message to the chat server, via ajax post
+	    var msg = message.trim();
+	    //handle admin commands
+	    if (msg.charAt(0) === "/" ) {
+		
+			console.log('admin me');
+			return Chat.command(message.substr(1))	
+		}
+	
+	     // format the chat message for posting
+	    var formattedMessage = username + ": " + msg;
+	
 	    $.ajax({
 	        url: 'https://api.parse.com/1/classes/chats',
 	        type: 'POST',
 	        dataType: 'JSON',
 	        contentType: 'application/json',
 	        data: JSON.stringify({
-	            text: message
+	            text: formattedMessage
 	        }),
 	        error: function(data) {
 	            console.error('Failed to send chat messages:\n\t' + data);
 	        },
-	        success: function(data) {
-	            // i guess chat clients shouldn't be proactively successful, so we just output success to the console
-	            console.log("sent data: " + message);
-	        }
+	        success: function(data) {}
 	    });
 	}
 
@@ -82,27 +92,67 @@
 	    // returned named paramater from the window's url query string, from http://stackoverflow.com/questions/1403888/get-url-parameter-with-jquery
 	    return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search) || [, null])[1]);
 	}
+	
+
+	function ChatHistory() {
+	    this.history = [];
+		this.cursor = 0;
+	    this.addHistory = function(message) {
+	        this.history.push(message);
+	    }
+		this.getOffset = function (index, offset){   
+		    return this.history[(this.history.length+index+(offset%this.history.length))%this.history.length];
+		}
+	}
+
+	function handleKeyInput(e) {
+		// we react to a couple of char key events for the input box in this handler
+		if(e.which == 13) {
+		        sendChat(); // bind enter to send button onclick
+		} else if (e.which == 38 ) {
+			    // up arrow
+				var textt = history.getOffset(history.cursor, -1 );
+				$('input[id=chat_text]').val(textt);
+				history.cursor += 1;
+		} else if (e.which == 40 ) {
+		    	// down arrow
+				var textt = history.getOffset(history.cursor, +1 );
+				$('input[id=chat_text]').val(textt);
+				history.cursor -= 1;
+			}
+		
+	}
+
+	function setRefreshRate(cb, interval) {
+		if ( interval === null ) {
+			window.clearInterval(cb);
+		}
+		return window.setInterval( cb, interval );
+	};
+
 
 	// Globals //
 	var username = getURLParameter("username");
-
+    var history = new ChatHistory();
+	var refreshTimer = setRefreshRate(rewriteChatMessages, 3000);
+	
 	// Init //
 	$(document).ready(function() {
-
-	    // init enable/disable of the chat button
-	    $('input[type="text"]').keyup(function() {
-	        if ($(this).val() != '') {
-	            $('.send').removeAttr('disabled');
-	        } else {
-	            $('.send').attr('disabled', 'disabled');
-	        }
-	    });
-
+		// init enable/disable of the chat button
+		    $('input[type="text"]').keyup(function(e) {
+		        if ($(this).val() != '') {
+		            $('.send').removeAttr('disabled');
+		        } else {
+		            $('.send').attr('disabled', 'disabled');
+		        }
+			handleKeyInput(e);
+		
+		    });
+	   
 	    // init chat message display handling. on page load: 
 	    //  - first we refresh the view 
 	    //  - and then we set a refresh rate via setInterval(), hardcoded to 3 seconds
 	    rewriteChatMessages();
-	    setInterval(rewriteChatMessages, 5000);
 
 	});
 
@@ -132,7 +182,9 @@
 
 	var sendChat = function() {
 	    // click send button handler. use chat_text to send the result and empty the form's input text value
-	    Chat.send(username + ": " + $('input[id=chat_text]').val());
+		var chatText = $('input[id=chat_text]').val();
+	    Chat.send(chatText );
+	    history.addHistory( chatText);
 	    $('input[id=chat_text]').val("");
 
 	}
@@ -145,6 +197,8 @@
     </ul>
   
   <input class="draft" id="chat_text" type="text"/> <button class="send" onClick="sendChat()" disabled>send</button>
-  
+  <button class="send" onClick="setRefreshRate(refreshTimer);"> pause</button> 
+  <button class="send" onClick="setRefreshRate(rewriteChatMessages, 3000);"> play</button> 
+
   </body>
 </html>
